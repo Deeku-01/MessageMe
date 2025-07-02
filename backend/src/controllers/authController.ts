@@ -2,6 +2,7 @@ import express from "express";
 import zod from "zod";
 import User from "../Models/User"; // Adjust the import path as necessary
 import jwt from "jsonwebtoken";
+import { upsertStreamUser } from "../lib/stream";
 
 const signupSchema= zod.object({
     fullName: zod.string().min(1, "Full name is required"),
@@ -37,7 +38,14 @@ export async function signupController(req, res) {
             profilePicture:randomAvatar
         });
 
-        // TODO : Create the User in the Stream Chat service
+        // Create the User in the Stream Chat service
+        const StreamUser= await upsertStreamUser({
+            id: newUser._id.toString(),
+            name: newUser.fullName,
+            image: newUser.profilePicture || "https://avatar.iran.liara.run/public/2.png"
+        });
+
+        console.log("Stream User created:", StreamUser);
 
         const token = jwt.sign({userId: newUser._id}, process.env.JWT_SECRET as string, {
             expiresIn: "7d" // Token expiration time
@@ -133,4 +141,58 @@ export function logoutController(req, res) {
         message: "Logout successful",
         success: true
     });
+}
+
+// @ts-ignore
+export async function onboard(req,res){
+    try{    
+        const userID= req.user._id; // Assuming req.user is set by the protectedRoute middleware
+        const user = await User.findById(userID);
+
+        const { fullName, username, bio, profilePicture } = req.body;
+
+        if(!fullName || !username || !bio || !profilePicture) {
+            return res.status(400).json({
+                message: "All fields are required",
+                missingFields: [
+                    !fullName ? "fullName" : null,
+                    !username ? "username" : null,
+                    !bio ? "bio" : null,
+                    !profilePicture ? "profilePicture" : null
+                ]
+            });
+        }
+        const updatedUser = await User.findByIdAndUpdate(
+            userID,
+            { ...req.body, isOnboarded: true },
+            { new: true}
+        );
+        
+        if(!updatedUser) {
+            return res.status(404).json({ 
+                message: "User not found" 
+            });
+        }
+
+
+        // TODO : Update the User Info In Stream Chat Service
+        const StreamUser = await upsertStreamUser({
+            id: updatedUser._id.toString(),
+            name: updatedUser.fullName,
+            image: updatedUser.profilePicture || "https://avatar.iran.liara.run/public/2.png"
+        });
+
+        res.status(200).json({
+            message: "Onboarding completed successfully",
+            success: true,
+            user: updatedUser
+        });
+
+
+    }catch(err){
+        console.error("Error during onboarding:", err);
+        res.status(500).json({ 
+            message: "Internal server error" 
+        });
+    }
 }

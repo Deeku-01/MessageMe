@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 
 // Define the interface for the User document
 export interface IUser extends Document {
+  _id: ObjectId; // MongoDB ObjectId type
   email: string;
   password: string;
   fullName: string;
