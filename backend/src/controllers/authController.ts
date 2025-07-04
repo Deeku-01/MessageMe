@@ -6,7 +6,6 @@ import { upsertStreamUser } from "../lib/stream";
 
 const signupSchema= zod.object({
     fullName: zod.string().min(1, "Full name is required"),
-    username: zod.string().min(1, "Username is required"),
     password: zod.string().min(6, "Password must be at least 6 characters long"),
     email: zod.string().email("Invalid email address")
 });
@@ -17,7 +16,7 @@ type SignupRequest = zod.infer<typeof signupSchema>;
 export async function signupController(req, res) {
     try{
         const validatedData:SignupRequest = signupSchema.parse(req.body);
-        const { fullName, username, password, email } = validatedData;
+        const { fullName,  password, email } = validatedData;
 
         // Here you would typically save the user to the database
         const existingUser = await User.findOne({ email });
@@ -32,7 +31,6 @@ export async function signupController(req, res) {
 
         const newUser = await User.create({
             fullName,
-            username,
             password,
             email,
             profilePicture:randomAvatar
