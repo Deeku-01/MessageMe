@@ -66,7 +66,7 @@ export async function signupController(req, res) {
     }catch (error) {
         if (error instanceof zod.ZodError) {
             return res.status(400).json({ 
-                message: "Validation failed",
+                message: error.message,
                 errors: error.errors.map(err => ({
                     field: err.path.join('.'),
                     message: err.message

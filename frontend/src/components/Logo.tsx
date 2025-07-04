@@ -17,6 +17,7 @@ export const LogoOption2 = () => (
     <span className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wide font-serif">
       Neura
     </span>
+<br></br>
   </div>
 );
 

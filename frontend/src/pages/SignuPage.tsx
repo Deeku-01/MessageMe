@@ -4,9 +4,38 @@ import {LogoOption2} from "../components/Logo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
 
+interface ApiError extends Error {
+  response?: {
+    data: any;
+    status: number;
+    statusText: string;
+  };
+}
+
+interface SignupData {
+  fullName: string;
+  email: string;
+  password: string;
+  termsAccepted: boolean;
+}
+
+const getErrorMessage = (error: ApiError | null) => {
+  if (!error) return "";
+  
+  if (error.response?.data?.message) {
+    return error.response.data.errors[0].message;
+  }
+  
+  if (error.message) {
+    return error.message;
+  }
+  
+  return "An unexpected error occurred";
+};
+
 
 const SignuPage = () => {
-  const [signupdata,setsignupdata]=useState({
+  const [signupdata,setsignupdata]=useState<SignupData>({
     fullName:"",
     email:"",
     password:"",
@@ -15,17 +44,20 @@ const SignuPage = () => {
 
   const queryClient=useQueryClient();
 
-  const {mutate,isPending,error} =useMutation({
+  const {mutate:SignUpMutation,isPending,error} =useMutation({
     mutationFn:async () =>{
       const response=await axiosInstance.post("/api/auth/signup",signupdata);
       return response.data;
     },
-    onSuccess:() => queryClient.invalidateQueries({queryKey:["authuser"]}) //refetch the data and this time it relodes the page to dashboard 
+    onSuccess:() => queryClient.invalidateQueries({queryKey:["authuser"]}), //refetch the data and this time it relodes the page to dashboard 
+    onError: (error: ApiError) => {
+      console.log(error);
+    }
   })
 
   const handleSignUp= (e:any)=>{
     e.preventDefault();
-    mutate();
+    SignUpMutation();
   }
 
   return (
@@ -35,6 +67,16 @@ const SignuPage = () => {
             <div className="w-full lg:w-1/2 p-4 sm:p-8 flex flex-col">
               {/* Logo */}
               <LogoOption2/>
+
+
+              {error && (
+                
+                <div className="alert alert-error mb-4 mt-4">
+
+                  <span>{getErrorMessage(error)}</span>
+                  
+                </div>
+              )}
               
               <div className="w-full">
                 <form onSubmit={handleSignUp}>
@@ -102,7 +144,9 @@ const SignuPage = () => {
                                 </p>
                               </div>
                       </div>
-                      <button className="btn btn-primary w-full" type="submit"> {isPending? "Signing Up...":"Create Account"}</button>
+                      <button className="btn btn-primary w-full" type="submit"> {isPending? (
+                        <><span className="loading loading-spinner loading-xs"> Loading...</span></>
+                      ):"Create Account"}</button>
                     
                       <div className="form-control w-full mt-4">
                         <p className="text-center text-sm opacity-70">
