@@ -28,7 +28,7 @@ const {authUser,isLoading}=useAuthUser();
         <Route path="/signup" element={!isAuthenticated?<SignuPage/>: <Navigate to="/" />}/>
         <Route path="/login" element={!isAuthenticated?<LoginPage/>: <Navigate to="/" />}/>
         <Route path="/call" element={isAuthenticated?<CallPage/>: <Navigate to="/login" />}/>
-        <Route path="/onboarding" element={isAuthenticated?<OnboardingPage/>: <Navigate to="/login" />}/>
+        <Route path="/onboarding" element={isAuthenticated?(!isOnboarded?(<OnboardingPage/>):(<Navigate to="/"/>)):(<Navigate to="/login"/>)}/>
         <Route path="/notifications" element={isAuthenticated?<NoticationsPage/>: <Navigate to="/login" />}/>
         <Route path="/chat" element={isAuthenticated?<ChatPage/>: <Navigate to="/login" />}/>
       </Routes>

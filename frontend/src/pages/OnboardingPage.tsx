@@ -3,7 +3,7 @@ import useAuthUser from "../hooks/useAuthuser"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
-import { CameraIcon, ShuffleIcon } from "lucide-react";
+import { CameraIcon, Podcast, ShuffleIcon } from "lucide-react";
 
 
 const OnboardingPage = () => {
@@ -19,7 +19,7 @@ const OnboardingPage = () => {
   })
 
 
-  const{mutate:onboardingMutation ,isPending,error}=useMutation({
+  const{mutate:onboardingMutation ,isPending}=useMutation({
     mutationFn: async ()=>{
       const res= await axiosInstance.post("/api/auth/onboard",formState)
       return res.data;
@@ -27,33 +27,35 @@ const OnboardingPage = () => {
      onSuccess:()=>{
       toast.success("Profile Onboarded Successfully");
       queryClient.invalidateQueries({queryKey:["authUser"]})
-      window.location.href="/"
      },
-     onError: (error: Error) => {
-      console.log(error);
-    }
+     onError: (error: any) => {
+      toast.error(error.response?.data?.message)
+    },
   })
 
-  const generateRandomAvatar=()=>{ 
+  const generateRandomAvatar= async ()=>{ 
      const idx=Math.floor(Math.random() * 100)+1;
      const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
 
-     setformState(prev=> ({
+    setformState(prev=> ({
       ...prev,
       profilePicture:randomAvatar
      }))
+     return await new Promise(resolve => setTimeout(resolve, 700))
 
   }
 
   const handleRandomAvatar = async () => {
       setGeneratingAvatar(true);
-      
-      // Add artificial delay
-      await new Promise(resolve => setTimeout(resolve, 700));
-      
-      // Your random avatar generation logic here
-      generateRandomAvatar();
-      
+
+    await toast.promise(
+    generateRandomAvatar(),
+    {
+      loading: 'Generating...',
+      success: <b>generated</b>,
+      error: <b>Could not Generate.</b>,
+    }
+  );
       setGeneratingAvatar(false);
 };
 
@@ -61,21 +63,6 @@ const OnboardingPage = () => {
     e.preventDefault();  //prevents reloading behaviour of the page once form is sumbitted 
     onboardingMutation();
   }
-
-  const getErrorMessage = (error:any) => {
-  if (!error) return "";
-
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-  
-  if (error.message) {
-    return error.message;
-  }
-  
-  return "An unexpected error occurred";
-};
-
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -87,17 +74,10 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center p-4 ">
+    <div className="min-h-screen bg-base-100 flex items-center justify-center p-4 " data-theme="black">
       <div className="card bg-base-200 w-full max-w-3xl shadow-xl">
         <div className="card-body p-6 sm:p-8">
-          {error && (
-                
-                <div className="alert alert-error mb-4 mt-4">
 
-                  <span>{getErrorMessage(error)}</span>
-                  
-                </div>
-            )}
           <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6"> Complete Your Profile</h1>
             <form onSubmit={handleSumbit} className="space-y-6">
               {/* Profile Pic Container */}
@@ -123,7 +103,7 @@ const OnboardingPage = () => {
                   </div>
                   {/* Generate Random Avatar Button */}
                   <div className="flex items-center gap-2">
-                    <button className="btn btn-accent" onClick={handleRandomAvatar} type="button" disabled={isGeneratingAvatar}>
+                    <button className="btn btn-accent rounded-full" onClick={handleRandomAvatar} type="button" disabled={isGeneratingAvatar}>
                       <ShuffleIcon className="size-4 mr-2"/> {isGeneratingAvatar ? 'Generating...' : 'Generate Random Avatar'}
                     </button>
                   </div>
@@ -180,7 +160,7 @@ const OnboardingPage = () => {
                 <div className="flex justify-center pt-4">
                   <button
                     type="submit"
-                    className="btn btn-primary w-full sm:w-auto px-8"
+                    className="btn btn-primary w-full sm:w-auto px-8 rounded-xl"
                     disabled={isPending}
                   >
                     {isPending ? (
@@ -189,12 +169,12 @@ const OnboardingPage = () => {
                         Updating Profile...
                       </>
                     ) : (
-                      'Complete Profile'
+                      <span className="flex col-span-2 space-x-2"><Podcast /><p className="justify-center text-lg">Complete Onboarding</p></span>
                     )}
                   </button>
                 </div>
             </form>
-
+ 
         </div>
       </div>
     </div>
