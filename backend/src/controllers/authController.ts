@@ -160,6 +160,22 @@ export async function onboard(req,res){
                 ]
             });
         }
+
+         // Check if username is already taken (excluding current user)
+        const usernametaken = await User.findOne({
+            username: username,
+            _id: { $ne: userID } // Exclude current user from check
+        });
+
+        if (usernametaken) {
+            res.status(409).json({ // 409 Conflict status code
+                message: "Username already taken",
+                error: "USERNAME_TAKEN",
+                success: false
+            });
+            return;
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             userID,
             { ...req.body, isOnboarded: true },
@@ -187,10 +203,28 @@ export async function onboard(req,res){
         });
 
 
-    }catch(err){
+    }catch(err: any) {
         console.error("Error during onboarding:", err);
-        res.status(500).json({ 
-            message: "Internal server error" 
-        });
+        
+        // Handle specific error types
+        if (err.name === 'ValidationError') {
+            res.status(400).json({
+                message: "Validation error",
+                error: err.message,
+                success: false
+            });
+        } else if (err.name === 'CastError') {
+            res.status(400).json({
+                message: "Invalid user ID",
+                error: "INVALID_USER_ID",
+                success: false
+            });
+        } else {
+            res.status(500).json({
+                message: "Internal server error",
+                error: err.message || "Unknown error occurred",
+                success: false
+            });
+        }
     }
 }
