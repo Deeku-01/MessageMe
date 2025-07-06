@@ -1,20 +1,19 @@
 import FriendRequest from '../lib/FriendReq';
 import User from '../Models/User'; // Adjust the import based on your project structure
 
-
 export async function getRecommendedUsers(req: any, res: any) {
     try {
-
         const curUserId = req.user._id; // Assuming req.user is set by the protectedRoute middleware
-        const curUser= req.user;
+        const curUser = req.user;
+        
         // Assuming you have a User model to interact with the database
         const recommendedusers = await User.find({ 
-            $and:[
-                {_id: { $ne: curUserId }},
-                {_id: { $nin: curUser.friends }},
-                {isOnboarded:true} // Exclude friends
-
-            ]}) // Exclude the current user
+            $and: [
+                { _id: { $ne: curUserId } },
+                { _id: { $nin: curUser.friends } },
+                { isOnboarded: true } // Exclude friends
+            ]
+        }) // Exclude the current user
             .select('-password -__v'); // Exclude sensitive fields
 
         res.status(200).json(recommendedusers);
@@ -27,17 +26,16 @@ export async function getRecommendedUsers(req: any, res: any) {
     }
 }
 
-// @ts-ignore
-export async function getMyfriends(req,res){
-    try{
+export async function getMyfriends(req: any, res: any) {
+    try {
         const curUserId = req.user._id; // Assuming req.user is set by the protectedRoute middleware
-        const curUser= req.user;
+        
         // Assuming you have a User model to interact with the database
         const user = await User.findById(curUserId).select("friends")
-        .populate('friends',"fullName profilePic") // Populate friends field, excluding sensitive fields -> need to add the skills (for Upbartr)
+            .populate('friends', "fullName profilePicture"); // FIXED: Changed to profilePicture
 
-        res.status(200).json(user!.friends);
-    }catch (error) {
+        res.status(200).json(user?.friends || []);
+    } catch (error) {
         console.error("Error fetching friends:", error);
         res.status(500).json({
             message: "Internal server error",
@@ -47,12 +45,12 @@ export async function getMyfriends(req,res){
 }
 
 export async function sendFriendRequest(req: any, res: any) {
-    try{
+    try {
         const senderId = req.user._id; // Assuming req.user is set by the protectedRoute middleware
-        const {id:recipientId} = req.params.id; // Get recipient ID from request parameters
+        const recipientId = req.params.id; // FIXED: Get recipient ID from request parameters
 
         // Check if sender and recipient are the same
-        if (senderId === recipientId) {
+        if (senderId.toString() === recipientId.toString()) {
             return res.status(400).json({
                 message: "You cannot send a friend request to yourself."
             });
@@ -68,7 +66,7 @@ export async function sendFriendRequest(req: any, res: any) {
 
         if (recipient.friends.includes(senderId)) {
             return res.status(400).json({
-                message: "You are Already friends with this user."
+                message: "You are already friends with this user."
             });
         }
 
@@ -86,8 +84,7 @@ export async function sendFriendRequest(req: any, res: any) {
             });
         }
 
-
-        const friendReq= await FriendRequest.create({
+        const friendReq = await FriendRequest.create({
             sender: senderId,
             recipient: recipientId,
             status: "pending"
@@ -95,7 +92,7 @@ export async function sendFriendRequest(req: any, res: any) {
 
         res.status(200).json(friendReq);
 
-    }catch(error) {
+    } catch (error) {
         console.error("Error sending friend request:", error);
         res.status(500).json({
             message: "Internal server error",
@@ -104,11 +101,10 @@ export async function sendFriendRequest(req: any, res: any) {
     }
 }
 
-
 export async function acceptFriendRequest(req: any, res: any) {
     try {
         const userId = req.user._id; // Assuming req.user is set by the protectedRoute middleware
-        const { id:requestId } = req.params; // Get request ID from request parameters
+        const requestId = req.params.id; // FIXED: Get request ID from request parameters
 
         // Find the friend request
         const friendRequest = await FriendRequest.findById(requestId);
@@ -146,31 +142,31 @@ export async function acceptFriendRequest(req: any, res: any) {
 }
 
 export async function getFriendReqs(req: any, res: any) {
-    try{
-        const incommingReq=await FriendRequest.find({
+    try {
+        const incommingReq = await FriendRequest.find({
             recipient: req.user._id,
             status: "pending"
-        }).populate('sender', 'fullName profilePicture'); // Populate sender field with fullName
+        }).populate('sender', 'fullName profilePicture'); // FIXED: Changed to profilePicture
 
-        const acceptedReq=await FriendRequest.find({
+        const acceptedReq = await FriendRequest.find({
             $or: [
                 { sender: req.user._id, status: "accepted" },
                 { recipient: req.user._id, status: "accepted" }
             ]
-        }).populate('sender recipient', 'fullName profilePicture'); // Populate both sender and recipient
+        }).populate('sender recipient', 'fullName profilePicture'); // FIXED: Changed to profilePicture
 
-        const outgoingReq=await FriendRequest.find({
+        const outgoingReq = await FriendRequest.find({
             sender: req.user._id,
             status: "pending"
-        }).populate('recipient', 'fullName profilePicture'); // Populate recipient field with fullName
+        }).populate('recipient', 'fullName profilePicture'); // FIXED: Changed to profilePicture
 
         res.status(200).json({
             incommingReq,
             acceptedReq,
             outgoingReq
-        })
+        });
 
-    }catch(err){
+    } catch (err) {
         console.error("Error fetching friend requests:", err);
         res.status(500).json({
             message: "Internal server error",
@@ -179,5 +175,66 @@ export async function getFriendReqs(req: any, res: any) {
     }
 }
 
+// ADDED: Missing rejectFriendRequest function
+export async function rejectFriendRequest(req: any, res: any) {
+    try {
+        const userId = req.user._id;
+        const requestId = req.params.id;
 
+        // Find the friend request
+        const friendRequest = await FriendRequest.findById(requestId);
+        if (!friendRequest) {
+            return res.status(404).json({
+                message: "Friend request not found."
+            });
+        }
 
+        // Check if the current user is the recipient of the friend request
+        if (friendRequest.recipient.toString() !== userId.toString()) {
+            return res.status(403).json({
+                message: "You are not authorized to reject this friend request."
+            });
+        }
+
+        // Update the friend request status to rejected
+        friendRequest.status = "rejected";
+        await friendRequest.save();
+
+        res.status(200).json(friendRequest);
+    } catch (error) {
+        console.error("Error rejecting friend request:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error
+        });
+    }
+}
+
+// ADDED: Missing removeFriend function
+export async function removeFriend(req: any, res: any) {
+    try {
+        const userId = req.user._id;
+        const friendId = req.params.id;
+
+        // Remove from both users' friends lists
+        await User.findByIdAndUpdate(userId, { $pull: { friends: friendId } });
+        await User.findByIdAndUpdate(friendId, { $pull: { friends: userId } });
+
+        // Update any accepted friend requests between these users
+        await FriendRequest.updateMany({
+            $or: [
+                { sender: userId, recipient: friendId },
+                { sender: friendId, recipient: userId }
+            ],
+            status: "accepted"
+        }, { status: "removed" });
+
+        res.status(200).json({ message: "Friend removed successfully" });
+    } catch (error) {
+        console.error("Error removing friend:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error
+        });
+    }
+}
