@@ -4,6 +4,7 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { LogoOption2 } from "../components/Logo";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { useThemeStore } from "../store/useThemeStore";
 
 const LoginPage = () => {
   const [loginData,setLoginData]=useState({
@@ -42,10 +43,12 @@ const LoginPage = () => {
     
   };
 
+  const theme=useThemeStore();
+
 
 
   return (
-    <div className="h-screen flex items-center justify-center p-4 sm:p-6 md:p-8" data-theme="light">
+    <div className="h-screen flex items-center justify-center p-4 sm:p-6 md:p-8" data-theme={theme}>
       <div className="border border-primary/25 flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-xl shadow-lg overflow-hidden">
         {/* Login Form Section */}
         <div className="w-full lg:w-1/2 p-4 sm:p-8 flex flex-col">

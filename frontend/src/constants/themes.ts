@@ -1,8 +1,8 @@
-const themes=[
+const THEMES=[
      "light",
       "dark",
       "valentine",
       "black",
 ]
 
-export default themes;
+export default THEMES;

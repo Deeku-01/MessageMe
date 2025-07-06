@@ -17,7 +17,6 @@ export const LogoOption2 = () => (
     <span className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wide font-serif">
       Neura
     </span>
-<br></br>
   </div>
 );
 
@@ -52,3 +51,12 @@ export const LogoOption5 = () => (
 );
 
 // Change this to use different options
+// in Home 
+export const LogoHome = () => (
+  <div className="flex items-center gap-3">
+    <Brain className="size-10 text-primary drop-shadow-lg animate-pulse" />
+    <span className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wide font-serif">
+      Neura
+    </span>
+  </div>
+);

@@ -7,10 +7,17 @@ import { axiosInstance } from "../lib/axios"
     queryKey:["authUser"],
 
     queryFn:async()=>{
-      const res=await axiosInstance.get("/me")
-      return res.data
+      try{
+        const res=await axiosInstance.get("/me")
+        return res.data
+      }catch(err){
+        console.log("no user");
+        return null;
+      }
+
     },
-    retry:false  //doesn't send requests again and again
+    retry:false
+
   })
     return{
         isLoading,
