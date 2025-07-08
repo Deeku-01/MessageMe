@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import { BellIcon, HomeIcon, UsersIcon } from "lucide-react";
 import useAuthUser from "../hooks/useAuthuser";
 import { LogoHome } from "./Logo";
+import { capitalise } from "../constants/Capitalise";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
@@ -59,7 +60,7 @@ const Sidebar = () => {
             </div>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-sm">{authUser?.fullName}</p>
+            <p className="font-semibold text-sm">{capitalise(authUser?.fullName)}</p>
             <p className="text-xs text-success flex items-center gap-1">
               <span className="size-2 rounded-full bg-success inline-block" />
               Online

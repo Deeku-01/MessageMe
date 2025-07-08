@@ -5,8 +5,19 @@ export interface ThemeStore {
   setTheme: (theme: string) => void;
 }
 
+// Get initial theme and apply it to DOM immediately
+const getInitialTheme = () => {
+  if (typeof window !== "undefined") {
+    const savedTheme = localStorage.getItem("theme") || "valentine";
+    // Apply theme to DOM immediately on initialization
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    return savedTheme;
+  }
+  return "valentine";
+};
+
 export const useThemeStore = create<ThemeStore>((set) => ({
-  theme: typeof window !== "undefined" ? localStorage.getItem("theme") || "light" : "light",
+  theme: getInitialTheme(),
   setTheme: (theme: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("theme", theme);

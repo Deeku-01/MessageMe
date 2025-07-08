@@ -2,3 +2,65 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Define chat gradients for your 4 themes */
+:root {
+  --chat-gradient-start: #f3f4f6;
+  --chat-gradient-end: #e5e7eb;
+}
+
+/* Light theme - Clean and bright */
+[data-theme="light"] {
+  --chat-gradient-start: #f3f4f6;
+  --chat-gradient-end: #e5e7eb;
+}
+
+/* Dark theme - Deep and modern */
+[data-theme="dark"] {
+  --chat-gradient-start: #1f2937;
+  --chat-gradient-end: #111827;
+}
+
+/* Valentine theme - Soft pink romance */
+[data-theme="valentine"] {
+  --chat-gradient-start: #fce7f3;
+  --chat-gradient-end: #fbcfe8;
+}
+
+/* Black theme - Pure dark elegance */
+[data-theme="black"] {
+  --chat-gradient-start: #000000;
+  --chat-gradient-end: #1f2937;
+}
+
+/* Apply the dynamic gradient */
+.str-chat__channel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, var(--chat-gradient-start), var(--chat-gradient-end));
+  height: 100%;
+  transition: background 0.3s ease;
+}
+.str-chat__container {
+  max-width: 1500px;
+  width: 100%;
+  height: 90% !important;
+  margin: 0 auto !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.str-chat__list {
+  background-color: #ffffff;
+  padding: 12px;
+}
+
+.str-chat__list-notifications {
+  display: none;
+}
+
+.str-chat__message-input {
+  border-top: 1px solid #ddd;
+}

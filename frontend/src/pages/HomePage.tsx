@@ -49,8 +49,15 @@ const HomePage = () => {
       return res.data;
     },
     onSuccess:()=>{
-       queryClient.invalidateQueries({queryKey:["OutgoingFrndReqs"]})
-       toast.success("Sending Request !!");
+       
+       toast.promise(
+        queryClient.invalidateQueries({queryKey:["OutgoingFrndReqs"]}),
+        {
+          loading: 'Sending...',
+          success: <b>Request Sent !!</b>,
+          error: <b>Could not Send.</b>,
+        }
+      );
 
     }
   })
@@ -89,7 +96,7 @@ const HomePage = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {friends.map((friend:any) => (
-                  <FriendCard key={friend._id} friend={friend} />
+                  <FriendCard key={friend._id} fullName={friend.fullName} profilePicture={friend.profilePicture} _id={friend._id} />
                 ))}
               </div>
             )}

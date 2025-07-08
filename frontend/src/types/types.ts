@@ -21,8 +21,8 @@ export interface FriendCardProps extends User {
 
 export interface FriendRequest {
   _id: string;
-  sender: string;
-  recipient: string;
+  sender: User;
+  recipient: User;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Date;
 }
